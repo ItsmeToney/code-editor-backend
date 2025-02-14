@@ -135,9 +135,25 @@ const codeExecution = async (req, res) => {
       getLanguageConfig(language);
     console.log(fileName, compileCommand, runCommand);
     // Write the full code to a temporary file
-    console.log("before writing");
+
     fs.writeFileSync(fileName, fullCode);
-    console.log("after writing", fs.readFileSync(fileName));
+
+    //Checking if the file is created or not
+    if (!fs.existsSync(fileName)) {
+      console.error(`Error: ${fileName} was not created.`);
+      return res.status(500).json({ error: `${fileName} was not created.` });
+    } else {
+      console.log(`${fileName} exists.`);
+    }
+
+    console.log("Current Working Directory:", process.cwd());
+
+    const files = fs.readdirSync(process.cwd());
+    console.log("Files in directory:", files);
+
+    console.log(`File Content of ${fileName}:`);
+    console.log(fs.readFileSync(fileName, "utf-8"));
+
     // Compile if necessary
     if (compileCommand) {
       await execPromise(compileCommand);
