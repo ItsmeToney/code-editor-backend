@@ -146,13 +146,10 @@ const codeExecution = async (req, res) => {
       console.log(`${fileName} exists.`);
     }
 
-    console.log("Current Working Directory:", process.cwd());
-
-    const files = fs.readdirSync(process.cwd());
-    console.log("Files in directory:", files);
-
-    console.log(`File Content of ${fileName}:`);
-    console.log(fs.readFileSync(fileName, "utf-8"));
+    //checking if the compiler exists
+    execPromise("gcc --version").catch(console.error); // For C
+    execPromise("javac -version").catch(console.error); // For Java
+    execPromise("python --version").catch(console.error); // For Python
 
     // Compile if necessary
     if (compileCommand) {
@@ -294,9 +291,16 @@ const runTestCases = async (runCommand, testCases) => {
 // **4. Helper function to execute commands**
 const execPromise = (command) => {
   return new Promise((resolve, reject) => {
+    console.log(`Executing command: ${command}`);
     exec(command, (error, stdout, stderr) => {
-      if (error) reject(stderr || error.message);
-      else resolve(stdout);
+      if (error) {
+        console.error(`Execution error: ${error.message}`);
+        console.error(`stderr: ${stderr}`);
+        reject(stderr || error.message);
+      } else {
+        console.log(`stdout: ${stdout}`);
+        resolve(stdout);
+      }
     });
   });
 };
