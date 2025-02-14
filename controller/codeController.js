@@ -135,8 +135,9 @@ const codeExecution = async (req, res) => {
       getLanguageConfig(language);
     console.log(fileName, compileCommand, runCommand);
     // Write the full code to a temporary file
+    console.log("before writing");
     fs.writeFileSync(fileName, fullCode);
-
+    console.log("after writing");
     // Compile if necessary
     if (compileCommand) {
       await execPromise(compileCommand);
