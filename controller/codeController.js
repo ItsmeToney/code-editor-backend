@@ -137,10 +137,11 @@ const codeExecution = async (req, res) => {
     // Write the full code to a temporary file
     console.log("before writing");
     fs.writeFileSync(fileName, fullCode);
-    console.log("after writing");
+    console.log("after writing", fs.readFileSync(fileName));
     // Compile if necessary
     if (compileCommand) {
       await execPromise(compileCommand);
+      console.log("Compiled successfully");
     }
 
     // Execute test cases
