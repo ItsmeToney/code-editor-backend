@@ -133,6 +133,7 @@ const codeExecution = async (req, res) => {
 
     const { fileName, compileCommand, runCommand } =
       getLanguageConfig(language);
+    console.log(fileName, compileCommand, runCommand);
     // Write the full code to a temporary file
     fs.writeFileSync(fileName, fullCode);
 
@@ -145,12 +146,12 @@ const codeExecution = async (req, res) => {
     const testResults = await runTestCases(runCommand, testCases);
 
     // Cleanup temp files
-    cleanupTempFiles(language);
+    // cleanupTempFiles(language);
 
     console.log("Execution Results:", testResults);
     res.json({ results: testResults });
   } catch (error) {
-    cleanupTempFiles(language);
+    // cleanupTempFiles(language);
     res.status(500).json({ error: error.message });
   }
 };
