@@ -311,8 +311,12 @@ const cleanupTempFiles = (language) => {
       fs.unlinkSync("Main.exe"); // Remove compiled C binary
     }
     if (language === "Java") {
-      fs.unlinkSync("Solution.class");
-      fs.unlinkSync("Main.class");
+      if (fs.existsSync("Solution.class")) {
+        fs.unlinkSync("Solution.class");
+      }
+      if (fs.existsSync("Main.class")) {
+        fs.unlinkSync("Main.class");
+      }
     } // Remove compiled Java class
   } catch (err) {
     console.error("Cleanup Error:", err.message);
