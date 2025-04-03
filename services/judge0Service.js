@@ -25,30 +25,30 @@ const CODE_TEMPLATES = {
 import json
 import inspect
 
-
 ${funcCode}
 
 def run_tests():
-    test_cases = ${JSON.stringify(
-      testCases,
-      null,
-      2
-    )}  # Injected test cases dynamically
+    # Convert JSON test cases safely from JavaScript to Python format
+    test_cases = json.loads('''${JSON.stringify(testCases)}''') 
+
     results = []
 
-    # Extract function parameters dynamically
+    # Detect function parameters dynamically
     func_params = inspect.signature(solution).parameters
     num_params = len(func_params)
 
     for tc in test_cases:
-        input_vals = eval(tc["input"])  # Convert string input to Python data
-        expected_output = json.loads(tc["expected_output"])  # Convert expected output correctly
+        input_vals = tc["input"]
+        expected_output = tc["output"]
 
-        if num_params == 1:
-            input_vals = (input_vals,)  # Ensure single param is passed as tuple
+        # Ensure input is passed correctly to the function
+        if isinstance(input_vals, list) and num_params == 1:
+            input_vals = (input_vals[0],)  # Convert single-list input into a tuple
+        elif not isinstance(input_vals, tuple):
+            input_vals = (input_vals,)  # Wrap single arguments in a tuple
 
         try:
-            actual_output = solution(*input_vals)  #Unpacks arguments dynamically
+            actual_output = solution(*input_vals)
             status = "success" if actual_output == expected_output else "fail"
         except Exception as e:
             actual_output = str(e)
@@ -56,8 +56,8 @@ def run_tests():
 
         results.append({
             "input": tc["input"],
-            "expectedOutput": tc["expected_output"],
-            "actualOutput": json.dumps(actual_output),  # Convert output to string format
+            "expectedOutput": expected_output,
+            "actualOutput": actual_output,
             "status": status
         })
 
