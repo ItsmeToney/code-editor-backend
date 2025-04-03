@@ -8,7 +8,23 @@ const connectDB = require("./config/dbConnection.js");
 connectDB();
 
 app.use(express.json());
-app.use(cors());
+app.use(bodyParser.json()); // Ensure body parsing
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Allow frontend origin
+    methods: ["GET", "POST", "OPTIONS"], // Allow necessary methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
+    credentials: true, // Allow cookies if needed
+    optionsSuccessStatus: 200, // Some browsers need this for legacy support
+  })
+);
+
+// Handle preflight requests explicitly
+app.options("*", (req, res) => {
+  res.sendStatus(204); // No Content (Success)
+});
+
 app.use(bodyParser.json());
 
 const port = process.env.PORT;
