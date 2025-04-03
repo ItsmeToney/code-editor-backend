@@ -2,7 +2,8 @@ const axios = require("axios");
 require("dotenv").config(); // Load environment variables
 
 const JUDGE0_API_URL = "https://judge0-ce.p.rapidapi.com";
-const RAPIDAPI_KEY = "c5740a788cmsh039e0e670e7f410p14a705jsn995181c98c05"; // Get from RapidAPI dashboard
+// const RAPIDAPI_KEY = "c5740a788cmsh039e0e670e7f410p14a705jsn995181c98c05"; // Get from RapidAPI dashboard
+const RAPIDAPI_KEY = "22f9185429msh164dd57199ca166p1d38e8jsn3a8ab2f52133"; // Get from RapidAPI dashboard
 const RAPIDAPI_HOST = "judge0-ce.p.rapidapi.com";
 
 const headers = {
