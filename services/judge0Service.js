@@ -3,7 +3,8 @@ require("dotenv").config(); // Load environment variables
 
 const JUDGE0_API_URL = "https://judge0-ce.p.rapidapi.com";
 // const RAPIDAPI_KEY = "c5740a788cmsh039e0e670e7f410p14a705jsn995181c98c05"; // Get from RapidAPI dashboard
-const RAPIDAPI_KEY = "22f9185429msh164dd57199ca166p1d38e8jsn3a8ab2f52133"; // Get from RapidAPI dashboard
+// const RAPIDAPI_KEY = "22f9185429msh164dd57199ca166p1d38e8jsn3a8ab2f52133"; // Get from RapidAPI dashboard
+const RAPIDAPI_KEY = "a668c53752mshd8cbbe6bf6fa5f4p101312jsndf440354d409"; // Get from RapidAPI dashboard
 const RAPIDAPI_HOST = "judge0-ce.p.rapidapi.com";
 
 const headers = {
@@ -65,110 +66,100 @@ def run_tests():
 
 run_tests()
 `,
+
   c: (funcCode, testCases) => `
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+  `,
 
-// User-defined function
-${funcCode}
+  java: (funcCode, testCases) => `import java.util.*;
+import java.lang.reflect.*;
+import java.util.Arrays;
 
-int main() {
-    printf("[");
-    
-    int numTests = ${testCases.length};
-    
-    for (int i = 0; i < numTests; i++) {
-        // ✅ Declare input variable dynamically based on test case type
-        ${testCases
-          .map((tc, index) => {
-            let inputVar = "";
-            let expectedOutputVar = "";
-            let functionCall = "";
+${funcCode} // The user's function is injected here
 
-            if (typeof tc.input === "number") {
-              inputVar = `int input = ${tc.input};`;
-              expectedOutputVar = `int expectedOutput = ${tc.expected_output};`;
-              functionCall = `int actualOutput = userFunction(input);`;
-            } else if (typeof tc.input === "string") {
-              inputVar = `char input[] = "${tc.input.replace(/"/g, '\\"')}";`;
-              expectedOutputVar = `char expectedOutput[] = "${tc.expected_output.replace(
-                /"/g,
-                '\\"'
-              )}";`;
-              functionCall = `char actualOutput[100]; userFunction(input, actualOutput);`;
-            } else if (Array.isArray(tc.input)) {
-              if (typeof tc.input[0] === "number") {
-                inputVar = `int input[] = {${tc.input.join(
-                  ", "
-                )}}; int size = ${tc.input.length};`;
-                expectedOutputVar = `int expectedOutput[] = {${tc.expected_output.join(
-                  ", "
-                )}};`;
-                functionCall = `int actualOutput[${tc.expected_output.length}]; userFunction(input, size, actualOutput);`;
-              } else if (typeof tc.input[0] === "string") {
-                inputVar = `char *input[] = {${tc.input
-                  .map((s) => `"${s}"`)
-                  .join(", ")}}; int size = ${tc.input.length};`;
-                expectedOutputVar = `char *expectedOutput[] = {${tc.expected_output
-                  .map((s) => `"${s}"`)
-                  .join(", ")}};`;
-                functionCall = `char *actualOutput[${tc.expected_output.length}]; userFunction(input, size, actualOutput);`;
-              }
+class TestResult {
+    String input;
+    String expectedOutput;
+    String actualOutput;
+    String status;
+
+    public TestResult(String input, String expectedOutput, String actualOutput, String status) {
+        this.input = input;
+        this.expectedOutput = expectedOutput;
+        this.actualOutput = actualOutput;
+        this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "{ \"input\": \"" + input + "\", \"expectedOutput\": \"" + expectedOutput +
+                "\", \"actualOutput\": \"" + actualOutput + "\", \"status\": \"" + status + "\" }";
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        List<TestResult> results = new ArrayList<>();
+        Solution solution = new Solution();
+        
+        try {
+            Method method = Solution.class.getDeclaredMethods()[0]; // Gets the first method in Solution class
+            Class<?>[] paramTypes = method.getParameterTypes(); // Gets parameter types
+
+            // Manually add test cases (since we removed convertToJavaSyntax)
+            Object[][] testCases = new Object[][] {
+                { new int[]{7,1,5,3,6,4}, 5 }, 
+                { new int[]{7,6,4,3,1}, 0 }
+            };
+
+            for (Object[] testCase : testCases) {
+                Object input = testCase[0];
+                Object expectedOutput = testCase[1];
+
+                Object actualOutput = method.invoke(solution, input);
+
+                boolean isCorrect = compareOutputs(expectedOutput, actualOutput);
+
+                String status = isCorrect ? "success" : "fail";
+                results.add(new TestResult(Arrays.deepToString(new Object[]{input}), 
+                                           String.valueOf(expectedOutput), 
+                                           String.valueOf(actualOutput), 
+                                           status));
             }
 
-            return `
-        // Test Case ${index + 1}
-        ${inputVar}
-        ${expectedOutputVar}
-        ${functionCall}
-        printf("{\\"input\\": \\"%s\\", \\"expectedOutput\\": \\"%s\\", \\"actualOutput\\": \\"%s\\", \\"status\\": \\"%s\\"}", 
-            "${JSON.stringify(tc.input)}", 
-            "${JSON.stringify(tc.expected_output)}", 
-            "${JSON.stringify(tc.expected_output)}", 
-            (memcmp(actualOutput, expectedOutput, sizeof(actualOutput)) == 0) ? "success" : "fail");`;
-          })
-          .join("\n")}
-        
-        if (i < numTests - 1) printf(",");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Print results in JSON format
+        System.out.println("[");
+        for (int i = 0; i < results.size(); i++) {
+            System.out.print("  " + results.get(i));
+            if (i < results.size() - 1) {
+                System.out.println(",");
+            }
+        }
+        System.out.println("\n]");
     }
-    
-    printf("]");
-    return 0;
+
+    private static boolean compareOutputs(Object expected, Object actual) {
+        if (expected instanceof int[] && actual instanceof int[]) {
+            return Arrays.equals((int[]) expected, (int[]) actual);
+        } else if (expected instanceof double[] && actual instanceof double[]) {
+            return Arrays.equals((double[]) expected, (double[]) actual);
+        } else if (expected instanceof boolean[] && actual instanceof boolean[]) {
+            return Arrays.equals((boolean[]) expected, (boolean[]) actual);
+        } else if (expected instanceof String[] && actual instanceof String[]) {
+            return Arrays.equals((String[]) expected, (String[]) actual);
+        } else if (expected instanceof int[][] && actual instanceof int[][]) {
+            return Arrays.deepEquals((int[][]) expected, (int[][]) actual);
+        } else if (expected instanceof Object[] && actual instanceof Object[]) {
+            return Arrays.deepEquals((Object[]) expected, (Object[]) actual);
+        } else {
+            return Objects.equals(expected, actual);
+        }
+    }
 }
 `,
-  java: (funcCode, testCases) => `
-  import java.util.*;
-  
-  ${funcCode}  // User-defined function
-
-  public class Main {
-      public static void main(String[] args) {
-          List<Map<String, Object>> results = new ArrayList<>();
-          
-          // ✅ Fix: Properly format test cases
-          Object[][] testCases = {${testCases
-            .map((tc) => `{"${tc.input}", "${tc.expected_output}"}`)
-            .join(", ")}};
-
-          for (Object[] testCase : testCases) {
-              String input = (String) testCase[0];
-              String expectedOutput = (String) testCase[1];
-              String actualOutput = Solution.solution(input);
-
-              Map<String, Object> result = new HashMap<>();
-              result.put("input", input);
-              result.put("expectedOutput", expectedOutput);
-              result.put("actualOutput", actualOutput);
-              result.put("status", actualOutput.equals(expectedOutput) ? "success" : "fail");
-
-              results.add(result);
-          }
-
-          System.out.println(results);
-      }
-  }
-  `,
 };
 
 async function executeCode(language, functionCode, testCases) {
